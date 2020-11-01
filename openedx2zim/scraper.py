@@ -194,6 +194,9 @@ class Openedx2Zim:
         self.wiki = None
         self.forum = None
 
+        self.failed_urls = {}
+        self.failure_threshhold = 1
+
         # set and record locale for translations
         locale_details = get_language_details(locale_name)
         self.instance_lang = locale_details["iso-639-1"]
@@ -660,6 +663,10 @@ class Openedx2Zim:
             preset = VideoWebmLow() if self.video_format == "webm" else VideoMp4Low()
         elif src.suffix[1:] != self.video_format:
             preset = VideoWebmHigh() if self.video_format == "webm" else VideoMp4High()
+        else:
+            if not src.resolve() == dst.resolve():
+                shutil.move(src, dst)
+            return True
         return reencode(
             src,
             dst,
@@ -884,4 +891,11 @@ class Openedx2Zim:
                 shutil.rmtree(self.build_dir, ignore_errors=True)
         # shutdown the youtube downloader
         self.yt_downloader.shutdown()
+        if self.failed_urls:
+            logger.error(
+                f"Content from {len(self.failed_urls)} URL(s) failed to download"
+            )
+            logger.debug("Failed URLs:")
+            for failed_url in self.failed_urls:
+                logger.debug(failed_url)
         logger.info("Done everything")

@@ -9,6 +9,7 @@
 - fixed mobile navigation menu
 - fixed video encoding in low quality in WebM
 - added support for internationalization
+- Fail properly on too many failed downloads or critical failures
 
 # 1.0.0
 

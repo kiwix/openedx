@@ -114,13 +114,19 @@ class Video(BaseXblock):
         else:
             video_path = self.output_path.joinpath("video.mp4")
         if not video_path.exists():
+            downloaded = None
             if youtube:
-                self.scraper.download_file(url, video_path)
+                downloaded = self.scraper.download_file(url, video_path)
             else:
-                self.scraper.download_file(
+                downloaded = self.scraper.download_file(
                     prepare_url(urllib.parse.unquote(url), self.scraper.instance_url),
                     video_path,
                 )
+            if not downloaded:
+                logger.error(
+                    f"Video for video block {self.xblock_json['student_view_url']} failed to download"
+                )
+                raise SystemExit(1)
         real_subtitle = download_and_convert_subtitles(
             self.output_path, subs_lang, instance_connection
         )

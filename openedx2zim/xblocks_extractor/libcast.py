@@ -2,6 +2,10 @@ from bs4 import BeautifulSoup
 
 from .base_xblock import BaseXblock
 from ..utils import jinja, download_and_convert_subtitles, prepare_url, get_back_jumps
+from ..constants import getLogger
+
+
+logger = getLogger()
 
 
 class Libcast(BaseXblock):
@@ -44,9 +48,14 @@ class Libcast(BaseXblock):
         else:
             video_path = self.output_path.joinpath("video.mp4")
         if not video_path.exists():
-            self.scraper.download_file(
+            downloaded = self.scraper.download_file(
                 prepare_url(url, self.scraper.instance_url), video_path
             )
+            if not downloaded:
+                logger.error(
+                    f"Video for libcast block {self.xblock_json['student_view_url']} failed to download"
+                )
+                raise SystemExit(1)
 
     def render(self):
         return jinja(
